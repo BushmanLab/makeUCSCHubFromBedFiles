@@ -19,8 +19,12 @@ so that one only need to change ```bb``` to ```bw``` to switch the display.
 The script is easy to follow. Just adapt it to your data.
 
 ### link example
-[bigbed dsiplay](http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&position=chr17%3A1-78774742&hubClear=https://microb215.med.upenn.edu/Download/data/share/UCSCTracksGTKJKOOKJHGTF/GENE/hub_bb.txt)  
-[bigWig display](http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&position=chr17%3A1-78774742&hubClear=https://microb215.med.upenn.edu/Download/data/share/UCSCTracksGTKJKOOKJHGTF/GENE/hub_bw.txt)
+Please open in private/incognito mode.
+```
+[yhwu GENE]$ cat hub_links.txt
+http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&position=chr17%3A1-78774742&hubClear=http://bushmanlab.org/ucsc/ywu/GENE/hub_bb.txt
+http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&position=chr17%3A1-78774742&hubClear=http://bushmanlab.org/ucsc/ywu/GENE/hub_bw.txt
+```
 
 ### host
 One needs a public host that the genome browser can pull data from, either http and https is fine. But, the files can not be password protected. If your apache server allows override the following ```.htaccess``` file enables directory listing and public access.
@@ -44,8 +48,8 @@ http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&hubClear=[URLTOTHEHUB.txt]
 http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&hubUrl=[URLTOTHEHUB.txt]
 ```
 where ```hg18``` should be changed to the reference genome of the bed files. With
-- ```hubClear``` only that hub is displayed,
-- ```hubUrl``` that hub is added to existing costomer tracks.  
+- ```hubClear```, only this hub is displayed,
+- ```hubUrl```, this hub is added to existing costomer tracks.  
 
 It is always a good idea to check the link from private/incognito mode. If you like a specific display, save it to a session and then show it to collaberators. Don't just save the link. 
 
