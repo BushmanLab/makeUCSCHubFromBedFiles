@@ -18,6 +18,10 @@ so that one only need to change ```bb``` to ```bw``` to switch the display.
 ### code example
 The script is easy to follow. Just adapt it to your data.
 
+### link example
+[bigbed dsiplay](http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&position=chr17%3A1-78774742&hubClear=https://microb215.med.upenn.edu/Download/data/share/UCSCTracksGTKJKOOKJHGTF/GENE/hub_bb.txt)  
+[bigWig display](http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&position=chr17%3A1-78774742&hubClear=https://microb215.med.upenn.edu/Download/data/share/UCSCTracksGTKJKOOKJHGTF/GENE/hub_bw.txt)
+
 ### host
 One needs a public host that the genome browser can pull data from, either http and https is fine. But, the files can not be password protected. If your apache server allows override the following ```.htaccess``` file enables directory listing and public access.
 ```
