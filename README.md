@@ -41,7 +41,8 @@ http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&hubUrl=[URLTOTHEHUB.txt]
 ```
 where ```hg18``` should be changed to the reference genome of the bed files. With
 - ```hubClear``` only that hub is displayed,
-- ```hubUrl``` that hub is added to existing costomer tracks.
+- ```hubUrl``` that hub is added to existing costomer tracks.  
+
 It is always a good idea to check the link from private/incognito mode. If you like a specific display, save it to a session and then show it to collaberators. Don't just save the link. 
 
 ### requirements
