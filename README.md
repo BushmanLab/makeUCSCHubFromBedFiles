@@ -20,9 +20,15 @@ so that one only needs to change ```bb``` to ```bw``` to switch the display.
 ### Code example
 Change the following variables to adapt to your data and then run the script.
 ```
-csvFile <- "bed.csv"
-hubName <- "GENE"
-freeze <- "hg18"
+Rscript makeUCSChubFromBedFiles.R bed.csv
+
+A csv file should look like this
+Sample,bedfile,Notes,freeze,hub
+GTSP0001,GTSP0001.bed,mock,hg18,GENE
+GTSP0002,GTSP0002.bed,real,hg18,GENE
+GTSP0003,GTSP0003.bed,mock,hg18,GENE
+GTSP0004,GTSP0004.bed,real,hg18,GENE
+GTSP0005,GTSP0005.bed,real,hg18,GENE
 ```
 
 ### Link example
