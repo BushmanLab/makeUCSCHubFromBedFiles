@@ -7,10 +7,15 @@
 ## bedtools http://bedtools.readthedocs.org/en/latest/content/installation.html
 ## https://github.com/arq5x/bedtools2/releases
 message("checking required external programs, mysql, UCSC tools, bedtools...")
-stopifnot( system("which mysql")==0 )
-stopifnot( system("which ~/opt/UCSC/bedToBigBed")==0 )
-stopifnot( system("which ~/opt/bedtools/genomeCoverageBed")==0 )
-stopifnot( system("which ~/opt/UCSC/bedGraphToBigWig")==0 )
+app.mysql <- "mysql"
+app.bedToBigBed <- "~/opt/UCSC/bedToBigBed"
+app.genomeCoverageBed <- "~/opt/bedtools/genomeCoverageBed"
+app.bedGraphToBigWig <- "~/opt/UCSC/bedGraphToBigWig"
+
+stopifnot( system2("which", app.mysql, stdout=FALSE)==0 )
+stopifnot( system2("which", app.bedToBigBed, stdout=FALSE)==0 )
+stopifnot( system2("which", app.genomeCoverageBed, stdout=FALSE)==0 )
+stopifnot( system2("which", app.bedGraphToBigWig, stdout=FALSE)==0 )
 
 options(stringsAsFactors=FALSE)
 
@@ -19,27 +24,36 @@ options(stringsAsFactors=FALSE)
 #' @param hubName, a name for the hub
 #' @param freeze, reference genome, hg18, hg19 etc
 csvFile <- "bed.csv"
-hubName <- "GENE"
-freeze <- "hg18"
+if( length(commandArgs(trailingOnly=TRUE))==1 ) csvFile <- commandArgs(trailingOnly=TRUE)[1]
+
+if( !file.exists(csvFile) ) { message("
+Usage: Rscript makeUCSChubFromBedFiles.R file.csv
+
+A sample csv file looks like the following
+sample,bedfile,notes,freeze,hub
+GTSP0001,GTSP0001.bed,sample0001,hg18,GENE 
+GTSP0002,GTSP0002.bed,sample0002,hg18,GENE
+GTSP0003,GTSP0003.bed,sample0003,hg18,GENE
+")
+                              message("\n", csvFile, " not found")
+                              q(status=1) }
 
 #### processing files ####
-## the csv should look something like this, bedfile should point to the BED files.
-##sample    bedfile    notes
-##GTSP0001 GTSP0001.bed sample0001
-##GTSP0002 GTSP0002.bed sample0002
-##GTSP0003 GTSP0003.bed sample0003
-
-
 sampleInfo <- read.csv(csvFile)
 colnames(sampleInfo) <- tolower(colnames(sampleInfo))
+hubName <- unique(sampleInfo$hub)
+freeze <- unique(sampleInfo$freeze)
 stopifnot(file.exists(sampleInfo$bedfile))
+stopifnot(length(freeze)==1)
+stopifnot(length(hubName)==1)
+
 sampleInfo <- subset(sampleInfo, file.exists(bedfile))
 
 message("\nProcessing bed files...")
 write.table(sampleInfo, "", quote=FALSE, sep="\t", row.names=FALSE)
 
 ## get $freeze.genome.sizes from UCSC
-cmd <- sprintf("mysql --user=genome --host=genome-mysql.cse.ucsc.edu -sNA -e 'select chrom, size from %s.chromInfo' > %s.genome.sizes", freeze, freeze) 
+cmd <- sprintf("%s --user=genome --host=genome-mysql.cse.ucsc.edu -sNA -e 'select chrom, size from %s.chromInfo' > %s.genome.sizes", app.mysql, freeze, freeze) 
 message("\n",cmd)
 stopifnot(system(cmd)==0)
 stopifnot(file.exists(paste0(freeze, ".genome.sizes")))
@@ -54,7 +68,8 @@ stopifnot(all(null==0))
 
 ## convert sorted bed file to bigbed
 message("\nconvert bed files to bigBed files...")
-cmd <- sprintf("~/opt/UCSC/bedToBigBed %s.sort.bed %s.genome.sizes %s.bb", 
+cmd <- sprintf("%s %s.sort.bed %s.genome.sizes %s.bb",
+               app.bedToBigBed,
                sampleInfo$bedfile, 
                freeze,  
                sampleInfo$bedfile)
@@ -63,7 +78,8 @@ stopifnot(all(null==0))
 
 ## convert sorted bed file to bedGraph file
 message("\nconvert bed files to bigGraph files...")
-cmd <- sprintf("~/opt/bedtools/genomeCoverageBed -bg -i %s.sort.bed -g %s.genome.sizes > %s.bedGraph",
+cmd <- sprintf("%s -bg -i %s.sort.bed -g %s.genome.sizes > %s.bedGraph",
+               app.genomeCoverageBed,
                sampleInfo$bedfile, 
                freeze,  
                sampleInfo$bedfile)
@@ -72,7 +88,8 @@ stopifnot(all(null==0))
 
 ## convert bedGraph file to bigwig
 message("\nconvert bigGraph files to bigWig files")
-cmd <- sprintf("~/opt/UCSC/bedGraphToBigWig %s.bedGraph %s.genome.sizes %s.bw",
+cmd <- sprintf("%s %s.bedGraph %s.genome.sizes %s.bw",
+               app.bedGraphToBigWig,
                sampleInfo$bedfile, 
                freeze,  
                sampleInfo$bedfile)
@@ -149,7 +166,7 @@ message("\nHub ", hubName, " generated, host the folder somewhere and point to t
         "\nNote the difference between &hubUrl= &hubClear=")
 
 #### host hub ###
-hostOnMicrob98 <- function() {
+hostOnMicrob32 <- function() {
     message("\nHosting on microb98...")
     hublink <- sprintf("http://genome.ucsc.edu/cgi-bin/hgTracks?db=%s&position=chr17%%3A1-78774742&hubClear=http://bushmanlab.org/ucsc/ywu/%s", freeze, file.path(hubName, c("hub_bb.txt", "hub_bw.txt")))
     write(hublink, file=file.path(hubName, "hub_links.txt"))
@@ -175,6 +192,7 @@ hostOnMicrob215 <- function() {
     message(paste(hublink, collapse="\n"))
 }
 
+hostOnMicrob32()
 ##hostOnMicrob215()
 
 #### clean up ####

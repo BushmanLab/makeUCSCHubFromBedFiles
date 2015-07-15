@@ -1,6 +1,6 @@
-Sample,bedfile,Notes
-GTSP0001,GTSP0001.bed,mock
-GTSP0002,GTSP0002.bed,real
-GTSP0003,GTSP0003.bed,mock
-GTSP0004,GTSP0004.bed,real
-GTSP0005,GTSP0005.bed,real
+Sample,bedfile,Notes,freeze,hub
+GTSP0001,GTSP0001.bed,mock,hg18,GENE
+GTSP0002,GTSP0002.bed,real,hg18,GENE
+GTSP0003,GTSP0003.bed,mock,hg18,GENE
+GTSP0004,GTSP0004.bed,real,hg18,GENE
+GTSP0005,GTSP0005.bed,real,hg18,GENE
