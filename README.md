@@ -1,5 +1,5 @@
 ### makeUCSCHubFromBedFiles
-This script does the following things to make the bed files into a costomer hub for the UCSC genome browser.
+This script does the following things to make the bed files into a customer hub for the UCSC genome browser.
 
 1. sort bed files,
 2. convert sorted bed files to bigbed format,
@@ -13,12 +13,12 @@ Both ```bigbed``` and ```bigwig``` can be displayed on the genome browser with t
 In order to make switch of display easy, two hubs are generated:
 ```
 1. hub_bb.txt ---> genomes_bb.txt ---> trackDb_bb.txt ---> the bigbed files,
-2. hub_bw.txt ---> genomes_bw.txt ---> trackDb_bw.txt ---> the bigbed files,
+2. hub_bw.txt ---> genomes_bw.txt ---> trackDb_bw.txt ---> the bigwig files,
 ```
-so that one only need to change ```bb``` to ```bw``` to switch the display.
+so that one only needs to change ```bb``` to ```bw``` to switch the display.
 
 ### Code example
-The script is easy to follow. Just change the following variables to adapt to your data
+Change the following variables to adapt to your data and then run the script.
 ```
 csvFile <- "bed.csv"
 hubName <- "GENE"
@@ -34,11 +34,11 @@ http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&position=chr17%3A1-78774742&hubC
 ```
 
 ### Host
-One needs a public host that the genome browser can pull data from, either http and https is fine. But, the files can not be password protected. If your apache server allows override the following ```.htaccess``` file enables directory listing and public access.
+One needs a public host that the genome browser can pull data from without password. Either http or https is fine. If your apache server allows override the following ```.htaccess``` file enables directory listing and public access.
 ```
 Options +Indexes
 IndexOptions IgnoreCase FancyIndexing FoldersFirst NameWidth=* DescriptionWidth=* SuppressHTMLPreamble
-IndexIgnore header.html footer.html favicon.ico .htaccess *.php *.css .. .ftpquota .DS_Store icons *.log *,v *,t .??* *~ *#
+IndexIgnore header.html footer.html favicon.ico .htaccess *.php ..
 HeaderName header.html
 
 Order allow,deny
@@ -48,13 +48,13 @@ Allow from all
 Require all granted
 ```
 
-### Link
+### Link to hub url
 The links can be given by 
 ```
 http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&hubClear=[URLTOTHEHUB.txt]
 http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg18&hubUrl=[URLTOTHEHUB.txt]
 ```
-where ```hg18``` should be changed to the reference genome of the bed files. With
+where ```hg18``` should be changed to the reference genome for the bed files. With
 - ```hubClear```, only this hub is displayed,
 - ```hubUrl```, this hub is added to existing costomer tracks.  
 
