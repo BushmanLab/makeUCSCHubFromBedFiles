@@ -31,6 +31,29 @@ GTSP0004,GTSP0004.bed,real,hg18,GENE
 GTSP0005,GTSP0005.bed,real,hg18,GENE
 ```
 
+### Output example
+```
+GENE
+├── genomes_bb.txt
+├── genomes_bw.txt
+├── hg18
+│   ├── GTSP0001.bed.bb
+│   ├── GTSP0001.bed.bw
+│   ├── GTSP0002.bed.bb
+│   ├── GTSP0002.bed.bw
+│   ├── GTSP0003.bed.bb
+│   ├── GTSP0003.bed.bw
+│   ├── GTSP0004.bed.bb
+│   ├── GTSP0004.bed.bw
+│   ├── GTSP0005.bed.bb
+│   ├── GTSP0005.bed.bw
+│   ├── trackDb_bb.txt
+│   └── trackDb_bw.txt
+├── hub_bb.txt
+├── hub_bw.txt
+└── hub_links.txt
+```
+
 ### Link example
 Please open in private/incognito mode.
 ```
