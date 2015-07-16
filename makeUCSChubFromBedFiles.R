@@ -1,21 +1,22 @@
 ## UCSC track doc 
 ## http://genome.ucsc.edu/goldenpath/help/hgTrackHubHelp.html
-
+##
 ## tools needed
 ## UCSC tools 
 ## wget -e robots=off -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/
-## bedtools http://bedtools.readthedocs.org/en/latest/content/installation.html
-## https://github.com/arq5x/bedtools2/releases
+## bedtools https://github.com/arq5x/bedtools2/releases
+## 
 message("checking required external programs, mysql, UCSC tools, bedtools...")
-app.mysql <- "mysql"
-app.bedToBigBed <- "~/opt/UCSC/bedToBigBed"
-app.genomeCoverageBed <- "~/opt/bedtools/genomeCoverageBed"
-app.bedGraphToBigWig <- "~/opt/UCSC/bedGraphToBigWig"
+app <- list(mysql="mysql",
+            bedToBigBed="~/opt/UCSC/bedToBigBed",
+            genomeCoverageBed="~/opt/bedtools/genomeCoverageBed",
+            bedGraphToBigWig="~/opt/UCSC/bedGraphToBigWig")
+null <- sapply(app, function(x) system2("which", x, stdout=FALSE))
+if( any(null!=0) ) stop(paste(app[null!=0], collapse=" "), " not availabe")
 
-stopifnot( system2("which", app.mysql, stdout=FALSE)==0 )
-stopifnot( system2("which", app.bedToBigBed, stdout=FALSE)==0 )
-stopifnot( system2("which", app.genomeCoverageBed, stdout=FALSE)==0 )
-stopifnot( system2("which", app.bedGraphToBigWig, stdout=FALSE)==0 )
+library(BiocParallel)
+ncore <- multicoreWorkers()
+BP <- MulticoreParam(ncore)
 
 options(stringsAsFactors=FALSE)
 
@@ -43,17 +44,19 @@ sampleInfo <- read.csv(csvFile)
 colnames(sampleInfo) <- tolower(colnames(sampleInfo))
 hubName <- unique(sampleInfo$hub)
 freeze <- unique(sampleInfo$freeze)
-stopifnot(file.exists(sampleInfo$bedfile))
+stopifnot(all(file.exists(sampleInfo$bedfile)))
 stopifnot(length(freeze)==1)
 stopifnot(length(hubName)==1)
 
-sampleInfo <- subset(sampleInfo, file.exists(bedfile))
+## set color for track by notes
+colors <- c("235,127,127", "127,127,235")
+sampleInfo$color <- colors[as.integer((as.factor(sampleInfo$notes)))%%length(colors)+1]
 
 message("\nProcessing bed files...")
 write.table(sampleInfo, "", quote=FALSE, sep="\t", row.names=FALSE)
 
 ## get $freeze.genome.sizes from UCSC
-cmd <- sprintf("%s --user=genome --host=genome-mysql.cse.ucsc.edu -sNA -e 'select chrom, size from %s.chromInfo' > %s.genome.sizes", app.mysql, freeze, freeze) 
+cmd <- sprintf("%s --user=genome --host=genome-mysql.cse.ucsc.edu -sNA -e 'select chrom, size from %s.chromInfo' > %s.genome.sizes", app$mysql, freeze, freeze) 
 message("\n",cmd)
 stopifnot(system(cmd)==0)
 stopifnot(file.exists(paste0(freeze, ".genome.sizes")))
@@ -63,37 +66,41 @@ message("\nSort bed files...")
 cmd <- sprintf("sort -S1G -k1,1 -k2,2n %s > %s.sort.bed", 
                sampleInfo$bedfile, 
                sampleInfo$bedfile)
-null <- sapply(cmd, function(x) {message(x); system(x)} )
+##null <- sapply(cmd, function(x) {message(x); system(x)} )
+null <- bplapply(cmd, function(x) {message(x); system(x)}, BPPARAM=BP)
 stopifnot(all(null==0))
 
 ## convert sorted bed file to bigbed
 message("\nconvert bed files to bigBed files...")
 cmd <- sprintf("%s %s.sort.bed %s.genome.sizes %s.bb",
-               app.bedToBigBed,
+               app$bedToBigBed,
                sampleInfo$bedfile, 
                freeze,  
                sampleInfo$bedfile)
-null <- sapply(cmd, function(x) {message(x); system(x)} )
+##null <- sapply(cmd, function(x) {message(x); system(x)} )
+null <- bplapply(cmd, function(x) {message(x); system(x)}, BPPARAM=BP)
 stopifnot(all(null==0))
 
 ## convert sorted bed file to bedGraph file
 message("\nconvert bed files to bigGraph files...")
 cmd <- sprintf("%s -bg -i %s.sort.bed -g %s.genome.sizes > %s.bedGraph",
-               app.genomeCoverageBed,
+               app$genomeCoverageBed,
                sampleInfo$bedfile, 
                freeze,  
                sampleInfo$bedfile)
-null <- sapply(cmd, function(x) {message(x); system(x)} )
+##null <- sapply(cmd, function(x) {message(x); system(x)} )
+null <- bplapply(cmd, function(x) {message(x); system(x)}, BPPARAM=BP)
 stopifnot(all(null==0))
 
 ## convert bedGraph file to bigwig
-message("\nconvert bigGraph files to bigWig files")
+message("\nconvert bigGraph files to bigWig files...")
 cmd <- sprintf("%s %s.bedGraph %s.genome.sizes %s.bw",
-               app.bedGraphToBigWig,
+               app$bedGraphToBigWig,
                sampleInfo$bedfile, 
                freeze,  
                sampleInfo$bedfile)
-null <- sapply(cmd, function(x) {message(x); system(x)} )
+##null <- sapply(cmd, function(x) {message(x); system(x)} )
+null <- bplapply(cmd, function(x) {message(x); system(x)}, BPPARAM=BP)
 stopifnot(all(null==0))
 
 #### put files in hub folder, generate trackDB_bw.txt and trackDB_bb.txt ####
@@ -106,11 +113,11 @@ stopifnot(all(file.copy(sprintf("%s.bw", sampleInfo$bedfile), file.path(hubName,
 trackDbFile <- file.path(hubName, freeze, "trackDb_bw.txt")
 trackDb <- data.frame(
     track = sampleInfo$sample,
-    bigDataUrl = paste0(sampleInfo$bedfile, ".bw"),
+    bigDataUrl = basename(paste0(sampleInfo$bedfile, ".bw")),
     shortLabel = sampleInfo$sample,
     longLabel = paste(sampleInfo$sample, sampleInfo$notes),
     type = "bigWig",
-    color = c("235,127,127", "127,127,235")[1:nrow(sampleInfo) %% 2 + 1],
+    color = sampleInfo$color,
     visibility = "full",
     windowingFunction = "maximum",
     configurable = "on" )
@@ -124,11 +131,11 @@ write(unlist(trackDb.list), file=trackDbFile)
 trackDbFile <- file.path(hubName, freeze, "trackDb_bb.txt")
 trackDb <- data.frame(
     track = sampleInfo$sample,
-    bigDataUrl = paste0(sampleInfo$bedfile, ".bb"),
+    bigDataUrl = basename(paste0(sampleInfo$bedfile, ".bb")),
     shortLabel = sampleInfo$sample,
     longLabel = paste(sampleInfo$sample, sampleInfo$notes),
     type = "bigBed",
-    color = c("235,127,127", "127,127,235")[1:nrow(sampleInfo) %% 2 + 1],
+    color = sampleInfo$color,
     visibility = "pack",
     windowingFunction = "maximum",
     configurable = "on" ,
@@ -167,7 +174,7 @@ message("\nHub ", hubName, " generated, host the folder somewhere and point to t
 
 #### host hub ###
 hostOnMicrob32 <- function() {
-    message("\nHosting on microb98...")
+    message("\nHosting on microb32...")
     hublink <- sprintf("http://genome.ucsc.edu/cgi-bin/hgTracks?db=%s&position=chr17%%3A1-78774742&hubClear=http://bushmanlab.org/ucsc/ywu/%s", freeze, file.path(hubName, c("hub_bb.txt", "hub_bw.txt")))
     write(hublink, file=file.path(hubName, "hub_links.txt"))
     
@@ -192,8 +199,8 @@ hostOnMicrob215 <- function() {
     message(paste(hublink, collapse="\n"))
 }
 
-hostOnMicrob32()
-##hostOnMicrob215()
+##hostOnMicrob32()
+hostOnMicrob215()
 
 #### clean up ####
 message("\nClean up...")
@@ -204,24 +211,5 @@ null <- file.remove(paste0(sampleInfo$bedfile, ".bb"))
 null <- file.remove(paste0(freeze, ".genome.sizes"))
 
 message("\nUse private/incognito mode to test the links.")
-
-
-#### sample track configuration file ####
-## [yinghua@microb237 makeUCSChubFromBed]$ tree CYS
-## CYS
-## ├── genomes_bb.txt
-## ├── genomes_bw.txt
-## ├── hg18
-## │── ├── GTSP0689.bed.bb
-## │── ├── GTSP0689.bed.bw
-## │── ├── GTSP0691.bed.bb
-## │── ├── GTSP0691.bed.bw
-## │── ├── GTSP0692.bed.bb
-## │── ├── GTSP0692.bed.bw
-## │── ├── trackDb_bb.txt
-## │── └── trackDb_bw.txt
-## ├── hub_bb.txt
-## ├── hub_bw.txt
-## └── hub_links.txt
 
 
