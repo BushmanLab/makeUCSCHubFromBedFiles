@@ -30,10 +30,12 @@ GTSP0003,GTSP0003.bed,mock,hg18,GENE
 GTSP0004,GTSP0004.bed,real,hg18,GENE
 GTSP0005,GTSP0005.bed,real,hg18,GENE
 
-# Note that the tracks will be displayed by the order given in the csv file. 
+# The tracks will be displayed by the order given in the csv file.
+# Short labels are given by sample column.
+# Long labels are given by sample notes columns.
 # The colors alternate acording to the notes column.
-# freeze column should only have one value.
-# hub column should only have one value.
+# Freeze column should only have one value.
+# Hub column should only have one value.
 ```
 
 ### Output example
