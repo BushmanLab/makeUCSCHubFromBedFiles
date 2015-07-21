@@ -38,6 +38,15 @@ GTSP0005,GTSP0005.bed,real,hg18,GENE
 # Hub column should only have one value.
 ```
 
+In order to generate `GTSP####.bed`, use `Rscript GTSP2BED.R GTSP####`. A sript to make the hub without the bed files could be:
+```
+for gtsp in `cut -d, -f1 CAR.csv | grep -iv sample`; do
+    echo $gtsp;
+    Rscript GTSP2BED.R $gtsp
+done
+Rscript ~/makeUCSCHubFromBedFiles/makeUCSChubFromBedFiles.R CAR.csv
+```
+
 ### Output example
 ```
 GENE
