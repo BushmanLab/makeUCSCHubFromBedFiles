@@ -29,6 +29,13 @@ GTSP0002,GTSP0002.bed,real,hg18,GENE
 GTSP0003,GTSP0003.bed,mock,hg18,GENE
 GTSP0004,GTSP0004.bed,real,hg18,GENE
 GTSP0005,GTSP0005.bed,real,hg18,GENE
+
+# The tracks will be displayed by the order given in the csv file.
+# Short labels are given by sample column.
+# Long labels are given by sample notes columns.
+# The colors alternate acording to the notes column.
+# Freeze column should only have one value.
+# Hub column should only have one value.
 ```
 
 ### Output example
@@ -87,15 +94,16 @@ where ```hg18``` should be changed to the reference genome for the bed files. Wi
 - ```hubClear```, only this hub is displayed,
 - ```hubUrl```, this hub is added to existing costomer tracks.  
 
-It is always a good idea to check the link from private/incognito mode. If you like a specific display, save it to a session and then show it to collaberators. Don't just save the link. 
+It is always a good idea to check the link from private/incognito mode.  
+If you like a specific display, save it to a session and link to it by the session's link. 
 
 ### Requirements
 1. UCSC genome browser binary tools available from http://hgdownload.cse.ucsc.edu/admin/exe/
 2. bedtools from https://github.com/arq5x/bedtools2/releases
-3. mysql
+3. mysql  
+
 To donwload all the UCSC bonaries, use the follow command:
 ```
 wget -e robots=off -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/
 ```
-
 
