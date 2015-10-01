@@ -13,6 +13,7 @@ wideScreen()
 args <- commandArgs(trailingOnly=TRUE)
 gtspid <- args[1]
 ##gtspid <- "GTSP0568"
+##gtspid <- "GTSP0931"
 
 if( is.na(gtspid) ) {
     message("Usage:\n\tRscript GTSP2BED.R GTSP####") 
@@ -27,7 +28,7 @@ stopifnot(file.info("~/.my.cnf")$mode == as.octmode("600"))
 ## initialize connection to database
 ## ~/.my.cnf must be present
 junk <- sapply(dbListConnections(MySQL()), dbDisconnect)
-dbConn <- dbConnect(MySQL(), group="intSitesDev237") 
+dbConn <- dbConnect(MySQL(), group="intsites_miseq.read") 
 stopifnot(dbGetQuery(dbConn, "SELECT 1")==1)
 
 allSampleName <- suppressWarnings( dbGetQuery(dbConn, "SELECT * FROM samples") )
@@ -51,6 +52,7 @@ sql <- paste("SELECT DISTINCT *
                 JOIN pcrbreakpoints
                 ON pcrbreakpoints.siteID = sites.siteID 
                 WHERE samples.sampleID in ", sampleIDin )
+message(sql)
 sites.uniq <- suppressWarnings( dbGetQuery(dbConn, sql) ) 
 sites.uniq <- sites.uniq[, !duplicated(colnames(sites.uniq))]
 
@@ -61,6 +63,7 @@ sql <- paste("SELECT *
                 JOIN multihitlengths
                 ON multihitpositions.multihitID = multihitlengths.multihitID ",
                 "WHERE samples.sampleID in ",  sampleIDin )
+message(sql)
 sites.multi <- suppressWarnings( dbGetQuery(dbConn, sql) ) 
 sites.multi <- sites.multi[, !duplicated(colnames(sites.multi))]
 sites.multi$breakpoint <- ifelse(sites.multi$strand=="+",
@@ -94,3 +97,5 @@ fileName <- paste(gtspid, "bed", sep=".")
 
 write.table(bed, file=fileName,
             quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE)
+message(fileName)
+
