@@ -55,8 +55,10 @@ processGTSP <- function(gtspid) {
     allSampleName <- suppressWarnings( dbGetQuery(dbConn, "SELECT * FROM samples") )
     
     ## get all replicates
-    replicates <- subset(allSampleName, grepl(paste0("^",gtspid), sampleName) )
-    stopifnot( nrow(replicates)>0 )
+    replicates <- subset(allSampleName,
+                         grepl(paste0("^",gtspid), sampleName) &
+                         refGenome==args$freeze)
+    if( nrow(replicates)==0 ) return() 
     
     ## get sampleInfo
     sql <- sprintf("SELECT * FROM specimen_management.gtsp WHERE SpecimenAccNum = '%s'", gtspid)
@@ -103,8 +105,9 @@ processGTSP <- function(gtspid) {
     bed <- plyr::arrange(bed, chr, position, strand)
     
     ##bed$name <- gtspid
-    bed$name <- paste(sampleInfo$patient, sampleInfo$timepoint, sampleInfo$celltype, sep=":")
-    bed$score <- 400
+    bed$name <- rep(paste(sampleInfo$patient, sampleInfo$timepoint, sampleInfo$celltype, sep=":"),
+                    nrow(bed))
+    bed$score <- rep(400, nrow(bed))
     
     bed <- plyr::arrange(bed, chr, position, strand)
     
@@ -112,7 +115,7 @@ processGTSP <- function(gtspid) {
                       chromStart=as.integer(pmin(bed$position, bed$breakpoint)),
                       chromEnd=as.integer(pmax(bed$position, bed$breakpoint)),
                       name=as.character(bed$name),
-                      score=500,
+                      score=rep(500, nrow(bed)),
                       strand=as.character(bed$strand))
     
     fileName <- paste(gtspid, sampleInfo$patient, sampleInfo$timepoint, sampleInfo$celltype, "bed", sep=".")
@@ -120,8 +123,12 @@ processGTSP <- function(gtspid) {
     
     write.table(bed, file=fileName,
                 quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE)
-    message(fileName)
+    message(fileName,"\t", nrow(bed), "\trows")
+    
+    return(list(fileName=fileName, reads=nrow(bed)))
 }
 
-null <- lapply(args$gtspid, processGTSP)
+res <- sapply(args$gtspid, processGTSP)
+message()
+print(as.data.frame(t(res)))
 
