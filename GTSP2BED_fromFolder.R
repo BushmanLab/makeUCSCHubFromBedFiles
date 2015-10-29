@@ -77,27 +77,34 @@ sites.multi <- data.frame(
     "breakpoint"=start(flank(multihitData[[1]], -1, start=FALSE)))
 sites.multi <- dplyr::distinct(sites.multi)
 
-if( args$type=="uniq") allsites <- sites.uniq
-if( args$type=="multi") allsites <- sites.multi
-if( args$type=="all") allsites <- plyr::rbind.fill(sites.uniq, sites.multi)
-stopifnot(args$type %in% c("uniq", "multi", "all"))
+## write uniq, multi, all sites to bed file
+write_bed <- function(allsites, fileName) {
+    allsites <- dplyr::select(allsites, chr, strand, position, breakpoint)
+    
+    ## write to file
+    bed <- plyr::arrange(allsites, chr, position, strand, breakpoint)
+    
+    bed <- data.frame(chrom=as.character(bed$chr),
+                      chromStart=as.integer(pmin(bed$position, bed$breakpoint)),
+                      chromEnd=as.integer(pmax(bed$position, bed$breakpoint)),
+                      name=args$workDir,
+                      score=500,
+                      strand=as.character(bed$strand))
+    
+    write.table(bed, file=fileName,
+                quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE)
+    message("File written to ", fileName)
+}
 
-allsites <- dplyr::select(allsites, chr, strand, position, breakpoint)
+allsites <- sites.uniq
+fileName <- sprintf("%s%s.bed", gtspid, "uniq")
+write_bed(allsites, fileName)
 
-## write to file
-bed <- plyr::arrange(allsites, chr, position, strand, breakpoint)
+allsites <- sites.multi
+fileName <- sprintf("%s%s.bed", gtspid, "multi")
+write_bed(allsites, fileName)
 
-bed <- data.frame(chrom=as.character(bed$chr),
-                  chromStart=as.integer(pmin(bed$position, bed$breakpoint)),
-                  chromEnd=as.integer(pmax(bed$position, bed$breakpoint)),
-                  name=args$workDir,
-                  score=500,
-                  strand=as.character(bed$strand))
-
-fileName <- paste(gtspid, args$type, "bed", sep=".")
-
-write.table(bed, file=fileName,
-            quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE)
-message("File written to ", fileName)
-
+allsites <- plyr::rbind.fill(sites.uniq, sites.multi)
+fileName <- sprintf("%s%s.bed", gtspid, "all")
+write_bed(allsites, fileName)
 
