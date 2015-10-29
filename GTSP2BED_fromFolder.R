@@ -18,15 +18,19 @@ set_args <- function(...) {
     parser$add_argument("workDir", nargs='?',
                         default='.',
                         help="Result sample folder from intSiteCaller")
+    parser$add_argument("-t", "--type", nargs=1,
+                        default='all',
+                        help="Type of sites: uniq, multi, all(default)")
     args <- parser$parse_args(...)
     
     args$workDir <- normalizePath(args$workDir, mustWork=TRUE)
+    stopifnot(args$type %in% c("uniq", "multi", "all"))
     
     return(args)
 }
 ##set_args()
 args <- set_args()
-print(args)
+write.table(t(as.data.frame(args)), col.names=FALSE, quote=FALSE, sep="\t")
 
 libs <- c("dplyr", "RMySQL", "stats", "GenomicRanges",
           "BiocGenerics", "parallel", "IRanges", "GenomeInfoDb")
@@ -73,7 +77,11 @@ sites.multi <- data.frame(
     "breakpoint"=start(flank(multihitData[[1]], -1, start=FALSE)))
 sites.multi <- dplyr::distinct(sites.multi)
 
-allsites <- plyr::rbind.fill(sites.uniq, sites.multi)
+if( args$type=="uniq") allsites <- sites.uniq
+if( args$type=="multi") allsites <- sites.multi
+if( args$type=="all") allsites <- plyr::rbind.fill(sites.uniq, sites.multi)
+stopifnot(args$type %in% c("uniq", "multi", "all"))
+
 allsites <- dplyr::select(allsites, chr, strand, position, breakpoint)
 
 ## write to file
@@ -86,7 +94,7 @@ bed <- data.frame(chrom=as.character(bed$chr),
                   score=500,
                   strand=as.character(bed$strand))
 
-fileName <- paste(gtspid, "bed", sep=".")
+fileName <- paste(gtspid, args$type, "bed", sep=".")
 
 write.table(bed, file=fileName,
             quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE)
