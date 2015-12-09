@@ -1,7 +1,7 @@
 #' Generate bed file from a GTSP sample folder
 #' Rscript ~/makeUCSCHubFromBedFiles/GTSPFolder2BED.R GTSP0515-10
 #' To generate all bed files, run
-#' for i in $(ls -d GTSP*/); do echo ${i%%//}; Rscript ~/makeUCSCHubFromBedFiles/GTSPFolder2BED.R ${i%%//}; done
+#' for i in $(ls -d GTSP*/); do echo ${i%%//}; Rscript ~/makeUCSCHubFromBedFiles/GTSP2BED_fromFolder.R ${i%%//}; done
 
 options(stringsAsFactors=FALSE)
 

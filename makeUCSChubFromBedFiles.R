@@ -66,6 +66,9 @@ message("\nSort bed files...")
 cmd <- sprintf("sort -S1G -k1,1 -k2,2n %s > %s.sort.bed", 
                sampleInfo$bedfile, 
                sampleInfo$bedfile)
+cmd <- sprintf("~/opt/UCSC/bedSort %s %s.sort.bed", 
+               sampleInfo$bedfile, 
+               sampleInfo$bedfile)
 ##null <- sapply(cmd, function(x) {message(x); system(x)} )
 null <- bplapply(cmd, function(x) {message(x); system(x)}, BPPARAM=BP)
 stopifnot(all(null==0))

@@ -45,3 +45,14 @@ write.csv(csv, file="bed.csv", row.names=FALSE, quote=FALSE)
 cmd <- "Rscript ~/makeUCSCHubFromBedFiles/makeUCSChubFromBedFiles.R bed.csv"
 system(cmd)
 
+
+## generate hub for a run after generating bed files
+hub <- "run20150728"
+freeze <- "hg18"
+pattern <- "all.bed"
+bedfile <- list.files(".", pattern=pattern)
+Sample <- sub(pattern, "", bedfile)
+Notes <- sub(".*-(\\d+)", "\\1", Sample)
+df <- data.frame(Sample,bedfile,Notes,freeze,hub)
+write.csv(df, file="bed.csv", quote=FALSE, row.names=FALSE)
+
