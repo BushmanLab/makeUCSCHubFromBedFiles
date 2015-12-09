@@ -10,7 +10,8 @@ message("checking required external programs, mysql, UCSC tools, bedtools...")
 app <- list(mysql="mysql",
             bedToBigBed="~/opt/UCSC/bedToBigBed",
             genomeCoverageBed="~/opt/bedtools/genomeCoverageBed",
-            bedGraphToBigWig="~/opt/UCSC/bedGraphToBigWig")
+            bedGraphToBigWig="~/opt/UCSC/bedGraphToBigWig",
+            bedSort="~/opt/UCSC/bedSort")
 null <- sapply(app, function(x) system2("which", x, stdout=FALSE))
 if( any(null!=0) ) stop(paste(app[null!=0], collapse=" "), " not availabe")
 
@@ -63,10 +64,8 @@ stopifnot(file.exists(paste0(freeze, ".genome.sizes")))
 
 ## sort bed files
 message("\nSort bed files...")
-cmd <- sprintf("sort -S1G -k1,1 -k2,2n %s > %s.sort.bed", 
-               sampleInfo$bedfile, 
-               sampleInfo$bedfile)
-cmd <- sprintf("~/opt/UCSC/bedSort %s %s.sort.bed", 
+cmd <- sprintf("%s %s %s.sort.bed", 
+               app$bedSort,
                sampleInfo$bedfile, 
                sampleInfo$bedfile)
 ##null <- sapply(cmd, function(x) {message(x); system(x)} )
